@@ -1,232 +1,233 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自动装料机控制面板</title>
-    <style>
+<!DOCTYPE html>                       <html lang="zh-CN">                   <head>
+    <meta charset="UTF-8">            <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>自动装料机控制面板</title> <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 15px;
-            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: #f4f6f9; 
+            margin: 0;                 
+            padding: 15px;             
+            color: #333;               
         }
         .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            max-width: 500px;          
+            margin: 0 auto;            
+            background: #fff;          
+            padding: 20px;             
+            border-radius: 12px;       
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
         }
         h2 {
-            text-align: center;
-            color: #111;
-            margin-top: 0;
+            text-align: center;        
+            color: #111;               
+            margin-top: 0;             
         }
         .btn {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            box-sizing: border-box;
+            display: block;            
+            width: 100%;               
+            padding: 12px;             
+            font-size: 16px;           
+            font-weight: bold;         
+            border: none;              
+            border-radius: 8px;        
+            cursor: pointer;           
+            text-align: center;        
+            box-sizing: border-box;    
         }
         .btn-blue {
-            background-color: #007bff;
-            color: white;
-            margin-bottom: 15px;
+            background-color: #007bff; 
+            color: white;              
+            margin-bottom: 15px;       
         }
         .btn-green {
-            background-color: #28a745;
-            color: white;
-            margin-top: 20px;
+            background-color: #28a745; 
+            color: white;              
+            margin-top: 20px;          
         }
         .weight-display {
-            background: #fff5f5;
-            border: 2px solid #feb2b2;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            font-size: 22px;
-            font-weight: bold;
-            color: #e53e3e;
-            margin: 15px 0;
+            background: #fff5f5;       
+            border: 2px solid #feb2b2; 
+            border-radius: 8px;        
+            padding: 15px;             
+            text-align: center;        
+            font-size: 22px;           
+            font-weight: bold;         
+            color: #e53e3e;            
+            margin: 15px 0;            
         }
         .param-group {
-            margin-bottom: 15px;
+            margin-bottom: 15px;       
         }
         .param-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #4a5568;
+            display: block;            
+            font-size: 14px;           
+            font-weight: 600;          
+            margin-bottom: 5px;        
+            color: #4a5568;            
         }
         .param-group input {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #cbd5e0;
-            border-radius: 6px;
-            box-sizing: border-box;
+            width: 100%;               
+            padding: 10px;             
+            font-size: 16px;           
+            border: 1px solid #cbd5e0; 
+            border-radius: 6px;        
+            box-sizing: border-box;    
         }
         .status-bar {
-            text-align: center;
-            font-size: 14px;
-            color: #718096;
-            margin-bottom: 10px;
+            text-align: center;        
+            font-size: 14px;           
+            color: #718096;            
+            margin-bottom: 10px;       
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>自动送料称重机控制器</h2>
+<div class="container"> 
+    <h2>自动送料称重机控制器</h2> 
     
-    <div class="status-bar" id="statusText">状态: 未连接</div>
-    <button class="btn btn-blue" id="connectBtn" onclick="onConnectClick()">搜索并连接设备</button>
+    <div class="status-bar" id="statusText">状态: 未连接</div> 
+    <button class="btn btn-blue" id="connectBtn" onclick="onConnectClick()">搜索并连接设备</button> 
     
-    <div class="weight-display" id="weightVal">
-        当前实时重量: 0.0 g
-    </div>
+    <div class="weight-display" id="weightVal"> 
+        当前实时重量: 0.0 g 
+    </div> 
     
-    <hr style="border: 0; height: 1px; background: #e2e8f0; margin: 20px 0;">
+    <hr style="border: 0; height: 1px; background: #e2e8f0; margin: 20px 0;"> 
 
     <div class="param-group">
-        <label>1. 设置称重目标重量 (克):</label>
-        <input type="number" id="etWeight" step="0.1" value="100.0" placeholder="例如: 100.0">
+        <label>1. 设置称重目标重量 (克):</label> 
+        <input type="number" id="etWeight" step="0.1" value="100.0" placeholder="例如: 100.0"> 
     </div>
 
     <div class="param-group">
-        <label>2. 预设重量达到后停留时长 (0-10秒):</label>
-        <input type="number" id="etWeighWait" min="0" max="10" value="2" placeholder="默认: 2">
+        <label>2. 预设重量达到后停留时长 (0-10秒):</label> 
+        <input type="number" id="etWeighWait" min="0" max="10" value="2" placeholder="默认: 2"> 
     </div>
 
     <div class="param-group">
-        <label>3. 装料舵机运行角度 (0-180度):</label>
-        <input type="number" id="etServoAngle" min="0" max="180" value="180" placeholder="默认: 180">
+        <label>3. 装料舵机运行角度 (0-180度):</label> 
+        <input type="number" id="etServoAngle" min="0" max="180" value="180" placeholder="默认: 180"> 
     </div>
 
     <div class="param-group">
-        <label>4. 舵机预设角度保持时长 (0-20秒):</label>
-        <input type="number" id="etServoHold" min="0" max="20" value="3" placeholder="默认: 3">
+        <label>4. 舵机预设角度保持时长 (0-20秒):</label> 
+        <input type="number" id="etServoHold" min="0" max="20" value="3" placeholder="默认: 3"> 
     </div>
 
     <div class="param-group">
-        <label>5. 舵机复位至下次送料间隔 (0-5秒):</label>
-        <input type="number" id="etCycleInterval" min="0" max="5" value="1" placeholder="默认: 1">
+        <label>5. 舵机复位至下次送料间隔 (0-5秒):</label> 
+        <input type="number" id="etCycleInterval" min="0" max="5" value="1" placeholder="默认: 1"> 
     </div>
 
-    <button class="btn btn-green" id="sendBtn" onclick="sendParameters()">下发 / 同步参数</button>
-</div>
+    <button class="btn btn-green" id="sendBtn" onclick="sendParameters()">下发 / 同步参数</button> 
+</div> 
 
 <script>
-    const SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
-    const CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
+    // 基础蓝牙通用特征通道配置
+    const SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";        
+    const CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"; 
 
-    let bleDevice = null;
-    let bleCharacteristic = null;
+    let bleDevice = null;         
+    let bleCharacteristic = null; 
 
+    // 点击连接按钮触发的异步函数
     async function onConnectClick() {
-        if (!bleDevice) {
-            try {
-                document.getElementById('statusText').innerText = "状态: 正在唤醒系统蓝牙列表...";
+        if (!bleDevice) { 
+            try { 
+                document.getElementById('statusText').innerText = "状态: 正在唤醒系统蓝牙列表..."; 
                 
+                // 【终极重构修复点：全放开广播列表模式】
+                // 彻底废除前端筛选，强制告诉手机系统直接100%全量列出周围所有的蓝牙信号（不管包超不超载）。
+                // 为了让系统允许我们后面握手该服务，必须把 SERVICE_UUID 注入到 optionalServices 中。
                 bleDevice = await navigator.bluetooth.requestDevice({
-                    filters: [
-                        { name: 'ESP32S3_Fill' }
-                    ],
-                    optionalServices: [SERVICE_UUID]
+                    acceptAllDevices: true,
+                    optionalServices: [SERVICE_UUID] 
                 });
 
-                document.getElementById('statusText').innerText = "状态: 正在建立GATT物理连接...";
+                document.getElementById('statusText').innerText = "状态: 正在建立GATT物理连接..."; 
                 
-                // 【核心兼容性修复】显式声明等待物理层建立，并动态判空接管
-                let gattServer = null;
-                if (bleDevice.gatt) {
-                    gattServer = await bleDevice.gatt.connect();
+                // 建立基础通信中转底座
+                let gattServer = null; 
+                if (bleDevice.gatt) { 
+                    gattServer = await bleDevice.gatt.connect(); 
                 }
                 
-                // 兜底机制：如果部分安卓系统 connect() 不返回实例，但连接状态已为真，则直接引用本地 gatt
-                if (!gattServer && bleDevice.gatt && bleDevice.gatt.connected) {
-                    gattServer = bleDevice.gatt;
+                // 安卓特有防拦截兜底机制
+                if (!gattServer && bleDevice.gatt && bleDevice.gatt.connected) { 
+                    gattServer = bleDevice.gatt; 
                 }
 
-                if (!gattServer) {
-                    throw new Error("无法成功构建GATT服务对象，请重启手机蓝牙再试");
+                if (!gattServer) { 
+                    throw new Error("无法成功构建GATT服务对象，请重启手机蓝牙再试"); 
                 }
                 
-                document.getElementById('statusText').innerText = "状态: 正在获取服务凭证...";
-                const service = await gattServer.getService(SERVICE_UUID);
+                document.getElementById('statusText').innerText = "状态: 正在获取服务凭证..."; 
+                const service = await gattServer.getService(SERVICE_UUID); // 向目标建立连接管道入口
                 
-                document.getElementById('statusText').innerText = "状态: 正在获取数据通道...";
-                bleCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+                document.getElementById('statusText').innerText = "状态: 正在获取数据通道..."; 
+                bleCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID); // 打通数据线
 
-                // 订阅来自 ESP32 的重量通知
-                await bleCharacteristic.startNotifications();
-                bleCharacteristic.addEventListener('characteristicvaluechanged', handleWeightNotify);
+                // 启动无线的实时数据主动通知（Notify）
+                await bleCharacteristic.startNotifications(); 
+                bleCharacteristic.addEventListener('characteristicvaluechanged', handleWeightNotify); 
 
-                document.getElementById('statusText').innerText = "状态: 已连接";
-                document.getElementById('connectBtn').innerText = "断开当前连接";
-                document.getElementById('connectBtn').style.backgroundColor = "#e53e3e";
+                document.getElementById('statusText').innerText = "状态: 已连接"; 
+                document.getElementById('connectBtn').innerText = "断开当前连接"; 
+                document.getElementById('connectBtn').style.backgroundColor = "#e53e3e"; 
                 
-                bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
-            } catch (error) {
-                console.error(error);
-                document.getElementById('statusText').innerText = "状态连接失败: " + error.message;
-                bleDevice = null;
-                bleCharacteristic = null;
+                bleDevice.addEventListener('gattserverdisconnected', onDisconnected); 
+            } catch (error) { 
+                console.error(error); 
+                document.getElementById('statusText').innerText = "状态连接失败: " + error.message; 
+                bleDevice = null;         
+                bleCharacteristic = null; 
             }
-        } else {
-            bleDevice.gatt.disconnect();
+        } else { 
+            bleDevice.gatt.disconnect(); 
         }
     }
 
+    // 接收来自硬件实时重量通知
     function handleWeightNotify(event) {
-        let decoder = new TextDecoder('utf-8');
-        let weightString = decoder.decode(event.target.value);
-        document.getElementById('weightVal').innerText = "当前实时重量: " + weightString + " g";
+        let decoder = new TextDecoder('utf-8'); 
+        let weightString = decoder.decode(event.target.value); 
+        document.getElementById('weightVal').innerText = "当前实时重量: " + weightString + " g"; 
     }
 
+    // 断线善后处理
     function onDisconnected() {
-        document.getElementById('statusText').innerText = "状态: 未连接";
-        document.getElementById('connectBtn').innerText = "搜索并连接设备";
-        document.getElementById('connectBtn').style.backgroundColor = "#007bff";
-        document.getElementById('weightVal').innerText = "当前实时重量: 0.0 g";
-        bleDevice = null;
-        bleCharacteristic = null;
+        document.getElementById('statusText').innerText = "状态: 未连接"; 
+        document.getElementById('connectBtn').innerText = "搜索并连接设备"; 
+        document.getElementById('connectBtn').style.backgroundColor = "#007bff"; 
+        document.getElementById('weightVal').innerText = "当前实时重量: 0.0 g"; 
+        bleDevice = null;         
+        bleCharacteristic = null; 
     }
 
+    // 同步发送参数
     async function sendParameters() {
-        if (!bleCharacteristic) {
-            alert("请先连接装料机蓝牙！");
-            return;
+        if (!bleCharacteristic) { 
+            alert("请先连接装料机蓝牙！"); 
+            return; 
         }
 
-        let w = parseFloat(document.getElementById('etWeight').value).toFixed(1);
-        let ww = parseInt(document.getElementById('etWeighWait').value);
-        let sa = parseInt(document.getElementById('etServoAngle').value);
-        let sh = parseInt(document.getElementById('etServoHold').value);
-        let ci = parseInt(document.getElementById('etCycleInterval').value);
+        let w = parseFloat(document.getElementById('etWeight').value).toFixed(1); 
+        let ww = parseInt(document.getElementById('etWeighWait').value);          
+        let sa = parseInt(document.getElementById('etServoAngle').value);         
+        let sh = parseInt(document.getElementById('etServoHold').value);          
+        let ci = parseInt(document.getElementById('etCycleInterval').value);      
 
         if(ww<0||ww>10 || sa<0||sa>180 || sh<0||sh>20 || ci<0||ci>5) {
-            alert("输入数值超出限定区间，请检查！");
-            return;
+            alert("输入数值超出限定区间，请检查！"); 
+            return; 
         }
 
         let dataString = `${w},${ww},${sa},${sh},${ci}`;
-        let encoder = new TextEncoder();
+        let encoder = new TextEncoder(); 
         try {
-            await bleCharacteristic.writeValue(encoder.encode(dataString));
-            alert("参数已下发，同步成功！");
-        } catch (error) {
-            alert("发送失败，请检查蓝牙状态。");
+            await bleCharacteristic.writeValue(encoder.encode(dataString)); 
+            alert("参数已下发，同步成功！"); 
+        } catch (error) { 
+            alert("发送失败，请检查蓝牙状态。"); 
         }
     }
 </script>
