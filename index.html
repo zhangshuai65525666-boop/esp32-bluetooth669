@@ -135,9 +135,7 @@
             try { 
                 document.getElementById('statusText').innerText = "状态: 正在唤醒系统蓝牙列表..."; 
                 
-                // 【终极重构修复点：全放开广播列表模式】
-                // 彻底废除前端筛选，强制告诉手机系统直接100%全量列出周围所有的蓝牙信号（不管包超不超载）。
-                // 为了让系统允许我们后面握手该服务，必须把 SERVICE_UUID 注入到 optionalServices 中。
+                // 强制手机系统直接 100% 列出周围所有的蓝牙信号
                 bleDevice = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true,
                     optionalServices: [SERVICE_UUID] 
@@ -145,23 +143,15 @@
 
                 document.getElementById('statusText').innerText = "状态: 正在建立GATT物理连接..."; 
                 
-                // 建立基础通信中转底座
-                let gattServer = null; 
-                if (bleDevice.gatt) { 
-                    gattServer = await bleDevice.gatt.connect(); 
-                }
-                
-                // 安卓特有防拦截兜底机制
-                if (!gattServer && bleDevice.gatt && bleDevice.gatt.connected) { 
-                    gattServer = bleDevice.gatt; 
-                }
+                // 【超强兼容性重构点】
+                // 绕开容易引发 Bug 的局部变量赋值，直接呼叫设备最底层的物理 gatt 核心开始连接。
+                // 这一步能彻底斩断各类国产手机浏览器乱改返回值导致的“XX is not a function”报错。
+                await bleDevice.gatt.connect(); 
 
-                if (!gattServer) { 
-                    throw new Error("无法成功构建GATT服务对象，请重启手机蓝牙再试"); 
-                }
-                
                 document.getElementById('statusText').innerText = "状态: 正在获取服务凭证..."; 
-                const service = await gattServer.getService(SERVICE_UUID); // 向目标建立连接管道入口
+                
+                // 【直连修复点】不再经由中间变量，直接从最稳固的基础树状根节点 `bleDevice.gatt` 索取服务
+                const service = await bleDevice.gatt.getService(SERVICE_UUID); 
                 
                 document.getElementById('statusText').innerText = "状态: 正在获取数据通道..."; 
                 bleCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID); // 打通数据线
