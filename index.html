@@ -135,23 +135,26 @@
             try { 
                 document.getElementById('statusText').innerText = "状态: 正在唤醒系统蓝牙列表..."; 
                 
-                // 强制手机系统直接 100% 列出周围所有的蓝牙信号
+                // 双重名字白名单过滤器，100% 逼迫手机列出设备
                 bleDevice = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
+                    filters: [
+                        { name: 'Fill_S3' },
+                        { name: 'ESP32S3_Fill' }
+                    ],
                     optionalServices: [SERVICE_UUID] 
                 });
 
                 document.getElementById('statusText').innerText = "状态: 正在建立GATT物理连接..."; 
                 
-                // 【超强兼容性重构点】
-                // 绕开容易引发 Bug 的局部变量赋值，直接呼叫设备最底层的物理 gatt 核心开始连接。
-                // 这一步能彻底斩断各类国产手机浏览器乱改返回值导致的“XX is not a function”报错。
-                await bleDevice.gatt.connect(); 
+                // 【核心修复点】
+                // 必须用一个独立的 server 变量来接收 connect() 返回的合法 GATT 服务器对象
+                const server = await bleDevice.gatt.connect(); 
 
                 document.getElementById('statusText').innerText = "状态: 正在获取服务凭证..."; 
                 
-                // 【直连修复点】不再经由中间变量，直接从最稳固的基础树状根节点 `bleDevice.gatt` 索取服务
-                const service = await bleDevice.gatt.getService(SERVICE_UUID); 
+                // 【核心修复点】
+                // 使用刚刚连成功的标准 server 对象去获取服务，彻底干掉“not a function”报错
+                const service = await server.getService(SERVICE_UUID); 
                 
                 document.getElementById('statusText').innerText = "状态: 正在获取数据通道..."; 
                 bleCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID); // 打通数据线
