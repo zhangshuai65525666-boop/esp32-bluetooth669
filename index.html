@@ -184,6 +184,11 @@
                 document.getElementById('connectBtn').innerText = "断开当前连接";
                 document.getElementById('connectBtn').className = "btn btn-red";
                 bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+                
+                // 连接成功后，主动发送读取参数指令
+                await new Promise(resolve => setTimeout(resolve, 200));
+                let encoder = new TextEncoder();
+                await bleCharacteristic.writeValue(encoder.encode("READ_PARAMS"));
             } catch (error) {
                 console.error(error);
                 document.getElementById('statusText').innerText = "状态连接失败: " + error.message;
