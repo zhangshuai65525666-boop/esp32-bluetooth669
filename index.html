@@ -161,7 +161,7 @@
                 }
                 
                 document.getElementById('statusText').innerText = "状态: 正在获取服务凭证..."; 
-                const service = await gattServer.getService(SERVICE_UUID); // 向目标建立连接管道入口
+                const service = await gattServer.getPrimaryService(SERVICE_UUID); // 向目标建立连接管道入口
                 
                 document.getElementById('statusText').innerText = "状态: 正在获取数据通道..."; 
                 bleCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID); // 打通数据线
