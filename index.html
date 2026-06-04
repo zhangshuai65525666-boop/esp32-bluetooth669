@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>自动装料机控制器</title>
     <style>
+        /* 页面整体样式 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #f4f6f9;
@@ -12,6 +13,7 @@
             padding: 15px;
             color: #333;
         }
+        /* 容器样式 */
         .container {
             max-width: 500px;
             margin: 0 auto;
@@ -20,11 +22,13 @@
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
+        /* 标题样式 */
         h2 {
             text-align: center;
             color: #111;
             margin-top: 0;
         }
+        /* 按钮通用样式 */
         .btn {
             display: block;
             width: 100%;
@@ -37,21 +41,25 @@
             text-align: center;
             box-sizing: border-box;
         }
+        /* 蓝色连接按钮 */
         .btn-blue {
             background-color: #007bff;
             color: white;
             margin-bottom: 15px;
         }
+        /* 红色断开按钮 */
         .btn-red {
             background-color: #e53e3e;
             color: white;
             margin-bottom: 15px;
         }
+        /* 绿色发送按钮 */
         .btn-green {
             background-color: #28a745;
             color: white;
             margin-top: 20px;
         }
+        /* 重量显示区域 */
         .weight-display {
             background: #fff5f5;
             border: 2px solid #feb2b2;
@@ -63,9 +71,11 @@
             color: #e53e3e;
             margin: 15px 0;
         }
+        /* 参数组样式 */
         .param-group {
             margin-bottom: 15px;
         }
+        /* 参数标签样式 */
         .param-group label {
             display: block;
             font-size: 14px;
@@ -73,6 +83,7 @@
             margin-bottom: 5px;
             color: #4a5568;
         }
+        /* 输入框样式 */
         .param-group input {
             width: 100%;
             padding: 10px;
@@ -81,6 +92,7 @@
             border-radius: 6px;
             box-sizing: border-box;
         }
+        /* 状态文本样式 */
         .status-bar {
             text-align: center;
             font-size: 14px;
@@ -93,66 +105,66 @@
 
 <div class="container">
     <h2>自动送料称重机控制器</h2>
-
     <div class="status-bar" id="statusText">状态: 未连接</div>
     <button class="btn btn-blue" id="connectBtn" onclick="onConnectClick()">搜索并连接设备</button>
+    <div class="weight-display" id="weightVal">当前实时重量: 0.0 g</div>
+    <hr style="border:0; height:1px; background:#e2e8f0; margin:20px 0;">
 
-    <div class="weight-display" id="weightVal">
-        当前实时重量: 0.0 g
-    </div>
-
-    <hr style="border: 0; height: 1px; background: #e2e8f0; margin: 20px 0;">
-
+    <!-- 参数输入项 -->
     <div class="param-group">
         <label>1. 设置称重目标重量 (克):</label>
         <input type="number" id="etWeight" step="0.1" value="100.0">
     </div>
-
     <div class="param-group">
         <label>2. 预设重量达到后停留时长 (0-10秒):</label>
         <input type="number" id="etWeighWait" min="0" max="10" value="2">
     </div>
-
     <div class="param-group">
         <label>3. 装料舵机运行角度 (0-180度):</label>
         <input type="number" id="etServoAngle" min="0" max="180" value="180">
     </div>
-
     <div class="param-group">
         <label>4. 舵机预设角度保持时长 (0-20秒):</label>
         <input type="number" id="etServoHold" min="0" max="20" value="3">
     </div>
-
     <div class="param-group">
         <label>5. 舵机复位至下次送料间隔 (0-5秒):</label>
         <input type="number" id="etCycleInterval" min="0" max="5" value="1">
     </div>
-
     <div class="param-group">
         <label>6. 称重正负误差范围 (克):</label>
         <input type="number" id="etWeightErr" step="0.1" value="2.0">
     </div>
-
     <div class="param-group">
         <label>7. 重量稳定判定阈值(毫秒):</label>
         <input type="number" id="etStableMs" min="100" max="2000" value="300">
     </div>
+    <div class="param-group">
+        <label>8. 供料尾程减速值 (0-100克):</label>
+        <input type="number" id="etSlowDown" min="0" max="100" step="0.1" value="10.0">
+    </div>
+    <div class="param-group">
+        <label>9. 减料稳重值 (0-5秒):</label>
+        <input type="number" id="etReduceStable" min="0" max="5" value="2">
+    </div>
 
-    <button class="btn btn-green" id="sendBtn" onclick="sendParameters()">下发 / 同步参数</button>
+    <button class="btn btn-green" onclick="sendParameters()">下发 / 同步参数</button>
 </div>
 
 <script>
+    // 蓝牙服务UUID
     const SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb";
+    // 蓝牙特征值UUID
     const CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
 
-    let bleDevice = null;
-    let bleCharacteristic = null;
-    let lastRecData = "";
+    let bleDevice = null;             // 蓝牙设备对象
+    let bleCharacteristic = null;    // 蓝牙特征对象
+    let lastRecData = "";             // 上一次接收的数据
 
-    // 解析设备传回参数 自动填充界面
+    // 接收设备参数并填充到界面
     function fillDeviceParams(paramStr){
         let arr = paramStr.split(',');
-        if(arr.length === 7){
+        if(arr.length === 9){
             document.getElementById('etWeight').value = arr[0];
             document.getElementById('etWeighWait').value = arr[1];
             document.getElementById('etServoAngle').value = arr[2];
@@ -160,38 +172,36 @@
             document.getElementById('etCycleInterval').value = arr[4];
             document.getElementById('etWeightErr').value = arr[5];
             document.getElementById('etStableMs').value = arr[6];
-            document.getElementById('statusText').innerText = "状态: 已同步设备当前全部参数";
+            document.getElementById('etSlowDown').value = arr[7];
+            document.getElementById('etReduceStable').value = arr[8];
+            document.getElementById('statusText').innerText = "状态: 已同步设备参数";
         }
     }
 
+    // 连接蓝牙设备
     async function onConnectClick() {
         if (!bleDevice) {
             try {
-                document.getElementById('statusText').innerText = "状态: 正在唤醒系统蓝牙列表...";
+                document.getElementById('statusText').innerText = "正在搜索设备...";
                 bleDevice = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true,
                     optionalServices: [SERVICE_UUID]
                 });
-                document.getElementById('statusText').innerText = "状态: 正在建立GATT物理连接...";
+                document.getElementById('statusText').innerText = "正在连接...";
                 let gattServer = await bleDevice.gatt.connect();
-                document.getElementById('statusText').innerText = "状态: 正在获取服务凭证...";
                 const service = await gattServer.getPrimaryService(SERVICE_UUID);
-                document.getElementById('statusText').innerText = "状态: 正在获取数据通道...";
                 bleCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
                 await bleCharacteristic.startNotifications();
                 bleCharacteristic.addEventListener('characteristicvaluechanged', handleRecData);
-                document.getElementById('statusText').innerText = "状态: 已连接，正在读取设备参数...";
-                document.getElementById('connectBtn').innerText = "断开当前连接";
+                document.getElementById('statusText').innerText = "已连接，读取参数中...";
+                document.getElementById('connectBtn').innerText = "断开连接";
                 document.getElementById('connectBtn').className = "btn btn-red";
-                bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
                 
-                // 连接成功后，主动发送读取参数指令
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // 发送读取参数指令
                 let encoder = new TextEncoder();
                 await bleCharacteristic.writeValue(encoder.encode("READ_PARAMS"));
             } catch (error) {
-                console.error(error);
-                document.getElementById('statusText').innerText = "状态连接失败: " + error.message;
+                document.getElementById('statusText').innerText = "连接失败：" + error.message;
                 bleDevice = null;
                 bleCharacteristic = null;
             }
@@ -200,36 +210,34 @@
         }
     }
 
-    // 统一处理接收数据：区分参数包 和 重量数据
+    // 处理蓝牙接收数据
     function handleRecData(event){
         let decoder = new TextDecoder('utf-8');
         let str = decoder.decode(event.target.value).trim();
         if(str === lastRecData) return;
         lastRecData = str;
 
-        // 包含6个逗号 = 设备完整参数包（7个参数）
         let commaCnt = (str.match(/,/g) || []).length;
-        if(commaCnt === 6){
+        if(commaCnt === 8){
             fillDeviceParams(str);
         }else{
-            // 单纯重量数据
             document.getElementById('weightVal').innerText = "当前实时重量: " + str + " g";
         }
     }
 
+    // 蓝牙断开回调
     function onDisconnected() {
         document.getElementById('statusText').innerText = "状态: 未连接";
         document.getElementById('connectBtn').innerText = "搜索并连接设备";
         document.getElementById('connectBtn').className = "btn btn-blue";
-        document.getElementById('weightVal').innerText = "当前实时重量: 0.0 g";
         bleDevice = null;
         bleCharacteristic = null;
-        lastRecData = "";
     }
 
+    // 下发参数到设备
     async function sendParameters() {
         if (!bleCharacteristic) {
-            alert("请先连接装料机蓝牙！");
+            alert("请先连接蓝牙！");
             return;
         }
         let w = parseFloat(document.getElementById('etWeight').value).toFixed(1);
@@ -239,18 +247,16 @@
         let ci = parseInt(document.getElementById('etCycleInterval').value);
         let werr = parseFloat(document.getElementById('etWeightErr').value).toFixed(1);
         let stms = parseInt(document.getElementById('etStableMs').value);
+        let slow = parseFloat(document.getElementById('etSlowDown').value).toFixed(1);
+        let stableT = parseInt(document.getElementById('etReduceStable').value);
 
-        if(ww<0||ww>10 || sa<0||sa>180 || sh<0||sh>20 || ci<0||ci>5) {
-            alert("输入数值超出限定区间，请检查！");
-            return;
-        }
-        let dataString = `${w},${ww},${sa},${sh},${ci},${werr},${stms}`;
+        let dataString = `${w},${ww},${sa},${sh},${ci},${werr},${stms},${slow},${stableT}`;
         let encoder = new TextEncoder();
         try {
             await bleCharacteristic.writeValue(encoder.encode(dataString));
-            alert("参数下发成功，设备已永久保存！");
+            alert("参数下发成功！");
         } catch (error) {
-            alert("发送失败，请检查蓝牙状态。");
+            alert("发送失败！");
         }
     }
 </script>
