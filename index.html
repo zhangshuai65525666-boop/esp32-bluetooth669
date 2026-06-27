@@ -83,10 +83,6 @@
             margin-bottom: 5px;
             color: #4a5568;
         }
-        /* 警告类标签样式（新增用于校准系数） */
-        .param-group label.warning {
-            color: #e53e3e; 
-        }
         /* 输入框样式 */
         .param-group input {
             width: 100%;
@@ -114,6 +110,7 @@
     <div class="weight-display" id="weightVal">当前实时重量: 0.0 g</div>
     <hr style="border:0; height:1px; background:#e2e8f0; margin:20px 0;">
 
+    <!-- 参数输入项 -->
     <div class="param-group">
         <label>1. 设置称重目标重量 (克):</label>
         <input type="number" id="etWeight" step="0.1" value="100.0">
@@ -150,10 +147,6 @@
         <label>9. 减料稳重值 (0-5秒):</label>
         <input type="number" id="etReduceStable" min="0" max="5" value="2">
     </div>
-    <div class="param-group">
-        <label class="warning">10. 称重校准系数 (请勿随意改动):</label>
-        <input type="number" id="etScaleFactor" step="0.01" value="433.20">
-    </div>
 
     <button class="btn btn-green" onclick="sendParameters()">下发 / 同步参数</button>
 </div>
@@ -171,8 +164,7 @@
     // 接收设备参数并填充到界面
     function fillDeviceParams(paramStr){
         let arr = paramStr.split(',');
-        // 将长度判断从 9 改为 10
-        if(arr.length === 10){
+        if(arr.length === 9){
             document.getElementById('etWeight').value = arr[0];
             document.getElementById('etWeighWait').value = arr[1];
             document.getElementById('etServoAngle').value = arr[2];
@@ -182,9 +174,6 @@
             document.getElementById('etStableMs').value = arr[6];
             document.getElementById('etSlowDown').value = arr[7];
             document.getElementById('etReduceStable').value = arr[8];
-            // 新增填充第10项校准系数
-            document.getElementById('etScaleFactor').value = arr[9]; 
-            
             document.getElementById('statusText').innerText = "状态: 已同步设备参数";
         }
     }
@@ -211,9 +200,6 @@
                 // 发送读取参数指令
                 let encoder = new TextEncoder();
                 await bleCharacteristic.writeValue(encoder.encode("READ_PARAMS"));
-                
-                // 监听设备断开事件
-                bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
             } catch (error) {
                 document.getElementById('statusText').innerText = "连接失败：" + error.message;
                 bleDevice = null;
@@ -232,8 +218,7 @@
         lastRecData = str;
 
         let commaCnt = (str.match(/,/g) || []).length;
-        // 将逗号数量判断从 8 改为 9 (10个参数对应9个逗号)
-        if(commaCnt === 9){
+        if(commaCnt === 8){
             fillDeviceParams(str);
         }else{
             document.getElementById('weightVal').innerText = "当前实时重量: " + str + " g";
@@ -264,11 +249,8 @@
         let stms = parseInt(document.getElementById('etStableMs').value);
         let slow = parseFloat(document.getElementById('etSlowDown').value).toFixed(1);
         let stableT = parseInt(document.getElementById('etReduceStable').value);
-        // 新增读取第10项参数
-        let scaleFac = parseFloat(document.getElementById('etScaleFactor').value).toFixed(2);
 
-        // 将10个参数拼接在一起
-        let dataString = `${w},${ww},${sa},${sh},${ci},${werr},${stms},${slow},${stableT},${scaleFac}`;
+        let dataString = `${w},${ww},${sa},${sh},${ci},${werr},${stms},${slow},${stableT}`;
         let encoder = new TextEncoder();
         try {
             await bleCharacteristic.writeValue(encoder.encode(dataString));
